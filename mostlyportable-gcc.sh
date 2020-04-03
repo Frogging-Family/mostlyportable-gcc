@@ -57,9 +57,14 @@ else
   source "${selected_config}" && echo -e "\nUsing GCC config\n"
 fi
 
-# Load external configuration file if present. Available variable values will overwrite customization.cfg ones.
+# Load external configuration file if present. Available variable values will overwrite mostlyportable-gcc.cfg / mostlyportable-mingw.cfg ones.
 if [ -e "$_EXT_CONFIG_PATH" ]; then
-  source "$_EXT_CONFIG_PATH" && echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override customization.cfg values.\n"
+  if [ "$_mingwbuild" == "true" ]; then
+    selected_config="mostlyportable-mingw.cfg"
+  else
+    selected_config="mostlyportable-gcc.cfg"
+  fi
+  source "$_EXT_CONFIG_PATH" && echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override $selected_config values.\n"
 fi
 
 echo -e "# Last mostlyportable-gcc configuration - $(date) :\n" > "$_nowhere"/last_build_config.log
