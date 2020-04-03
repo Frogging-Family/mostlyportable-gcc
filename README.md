@@ -14,6 +14,10 @@ You'll need basic development tools installed (`base-devel`, `build-essential` o
 ## Building:
 Simply run `./mostlyportable-gcc.sh` and select the compiler you want to build. If you want to customize your build, edit the corresponding .cfg.
 
+Alternatively, you can pass an external config file like so:
+
+`./mostlyportable-gcc.sh /path/to/my/external/config.cfg`
+
 ## How to use the resulting build:
 The most convenient way is to locally add bin/lib/include dirs of your build to PATH when building your project. That way your custom build will get priority for that process without altering your system.
 Example: `customcc="/home/frog/PKGBUILDS/mostlyportable-gcc/gcc-mostlyportable-9.2.0" PATH=${customcc}/bin:${customcc}/lib:${customcc}/include:${PATH} make`

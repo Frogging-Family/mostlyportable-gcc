@@ -29,13 +29,32 @@ EOM
 
 _nowhere=$PWD
 
+if [ -n "$1" ]; then
+  _EXT_CONFIG_PATH="$(readlink -m $1)"
+  if [ ! -f "$_EXT_CONFIG_PATH" ]; then
+    echo "User-supplied external config file '${_EXT_CONFIG_PATH}' not found! Please fix your passed path!"
+    exit 0
+  fi
+fi
+
 echo -e "What do you want to build?"
 read -rp "`echo $'  > 1.GCC\n    2.MinGW-w64-GCC\nchoice[1-2?]: '`" _builtype;
 if [ "$_builtype" == "2" ]; then
-  source ${_nowhere}/mostlyportable-mingw.cfg && echo -e "\nUsing MinGW config\n"
   _mingwbuild="true"
+fi
+
+if [ "$_mingwbuild" == "true" ]; then
+  selected_config="${_nowhere}/mostlyportable-mingw.cfg"
+  if [ -n "$1" ]; then
+    sed -i -e "s|_EXT_CONFIG_PATH.*|_EXT_CONFIG_PATH=${_EXT_CONFIG_PATH}|" "${selected_config}"
+  fi
+  source "${selected_config}" && echo -e "\nUsing MinGW config\n"
 else
-  source ${_nowhere}/mostlyportable-gcc.cfg && echo -e "\nUsing GCC config\n"
+  selected_config="${_nowhere}/mostlyportable-gcc.cfg"
+  if [ -n "$1" ]; then
+    sed -i -e "s|_EXT_CONFIG_PATH.*|_EXT_CONFIG_PATH=${_EXT_CONFIG_PATH}|" "${selected_config}"
+  fi
+  source "${selected_config}" && echo -e "\nUsing GCC config\n"
 fi
 
 # Load external configuration file if present. Available variable values will overwrite customization.cfg ones.
