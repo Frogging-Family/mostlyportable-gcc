@@ -408,7 +408,7 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
         cd ${_nowhere}/build/gcc-base-${_target}
         PATH=${_path_hack} make install-gcc
         strip ${_dstdir}/bin/${_target}-* || true
-        strip ${_dstdir}/libexec/gcc.base/${_target}/${_gcc_version}/{cc1,collect2,lto*} || true
+        strip ${_dstdir}/libexec/gcc/${_target}/${_gcc_version}/{cc1,collect2,lto*} || true
       done
 
       # mingw-w64-crt
