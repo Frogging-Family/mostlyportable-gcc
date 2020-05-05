@@ -27,7 +27,7 @@ cat << 'EOM'
 
 EOM
 
-_nowhere=$PWD
+_nowhere="$PWD"
 
 echo -e "What do you want to build?"
 read -rp "`echo $'  > 1.GCC\n    2.MinGW-w64-GCC\nchoice[1-2?]: '`" _builtype;
@@ -174,13 +174,38 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
       if [ ! -e cloog-${_cloog}.tar.gz ]; then
         wget -c https://github.com/periscop/cloog/releases/download/cloog-${_cloog}/cloog-${_cloog}.tar.gz
       fi
-      if [ ! -e mingw-w64-v${_mingw}.tar.bz2 ]; then
-        wget -c https://sourceforge.net/projects/mingw-w64/files/mingw-w64/mingw-w64-release/mingw-w64-v${_mingw}.tar.bz2
+
+      if [ "$_use_mingw_git" == "true" ]; then
+        cd ${_nowhere}
+        git clone --mirror ${_mingw_git} mingw-w64-git || true
+        cd ${_nowhere}/mingw-w64-git
+        if [[ "${_mingw_git}" != "$(git config --get remote.origin.url)" ]] ; then
+          echo "mingw-w64-git is not a clone of ${_mingw_git}. Please delete gcc dir and try again."
+          exit 1
+        fi
+        echo -e "\nPlease be patient, it might take a while...\n"
+        git fetch --all -p
+        rm -rf ${_nowhere}/build/mingw-w64-git && git clone ${_nowhere}/mingw-w64-git ${_nowhere}/build/mingw-w64-git
+        cd ${_nowhere}/build/mingw-w64-git
+        git checkout --force --no-track -B safezone origin/HEAD
+        if [ -n "${_mingw}" ]; then
+          git checkout "${_mingw}"
+        fi
+        git reset --hard HEAD
+        git clean -xdf
+        cd ${_nowhere}/build
+        _mingw_path="mingw-w64-git"
+      else
+        cd ${_nowhere}/build
+        if [ ! -e mingw-w64-v${_mingw}.tar.bz2 ]; then
+          wget -c https://sourceforge.net/projects/mingw-w64/files/mingw-w64/mingw-w64-release/mingw-w64-v${_mingw}.tar.bz2
+          chmod a+x mingw-w64-v${_mingw}.tar.* && tar -xvf mingw-w64-v${_mingw}.tar.* >/dev/null 2>&1
+          _mingw_path="mingw-w64-v${_mingw}"
+        fi
       fi
 
       chmod a+x osl-${_osl}.tar.* && tar -xvf osl-${_osl}.tar.* >/dev/null 2>&1
       chmod a+x cloog-${_cloog}.tar.* && tar -xvf cloog-${_cloog}.tar.* >/dev/null 2>&1
-      chmod a+x mingw-w64-v${_mingw}.tar.* && tar -xvf mingw-w64-v${_mingw}.tar.* >/dev/null 2>&1
 
       if [[ "$_binutils" = 2.33* ]]; then
         wget -c -O proton_binutils1.binutilspatch https://raw.githubusercontent.com/ValveSoftware/Proton/3ad34a0b3f41bac60caea39c742de69cb0e50895/mingw-w64-patches/binutils-0001.patch
@@ -312,7 +337,7 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
       for _target in ${_targets}; do
         echo -e "Configuring ${_target} headers"
         mkdir -p ${_nowhere}/build/headers-${_target} && cd ${_nowhere}/build/headers-${_target}
-        PATH=${_path_hack} ${_nowhere}/build/mingw-w64-v${_mingw}/mingw-w64-headers/configure \
+        PATH=${_path_hack} ${_nowhere}/build/${_mingw_path}/mingw-w64-headers/configure \
           --enable-sdk=all \
           --enable-secure-api \
           --host=${_target} \
@@ -395,7 +420,7 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
           _crt_configure_args="--disable-lib32 --enable-lib64"
         fi
         mkdir -p ${_nowhere}/build/crt-${_target} && cd ${_nowhere}/build/crt-${_target}
-        PATH=${_path_hack} ${_nowhere}/build/mingw-w64-v${_mingw}/mingw-w64-crt/configure \
+        PATH=${_path_hack} ${_nowhere}/build/${_mingw_path}/mingw-w64-crt/configure \
           --host=${_target} \
           --enable-wildcard \
           ${_crt_configure_args} \
@@ -412,7 +437,7 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
       for _target in ${_targets}; do
         echo -e "Building ${_target} winpthreads..."
         mkdir -p ${_nowhere}/build/winpthreads-build-${_target} && cd ${_nowhere}/build/winpthreads-build-${_target}
-        PATH=${_path_hack} ${_nowhere}/build/mingw-w64-v${_mingw}/mingw-w64-libraries/winpthreads/configure \
+        PATH=${_path_hack} ${_nowhere}/build/${_mingw_path}/mingw-w64-libraries/winpthreads/configure \
           --host=${_target} \
           --prefix=${_dstdir}/${_target} \
           ${_commonconfig}

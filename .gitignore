@@ -17,5 +17,6 @@
 */pkg/
 build/
 gcc/
+mingw-w64-git/
 gcc-mostlyportable*
 mingw-mostlyportable*
