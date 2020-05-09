@@ -460,11 +460,16 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
       else
         _exceptions_args="--disable-dw2-exceptions"
       fi
+
+      ## languages
+      _mingw_lang_args="--enable-languages=c,lto,c++,objc,obj-c++"
       if [ "$_fortran" == "true" ]; then
-        _fortran_args="--enable-languages=c,lto,c++,objc,obj-c++,fortran,ada"
-      else
-        _fortran_args="--enable-languages=c,lto,c++,objc,obj-c++,ada"
+        _mingw_lang_args+=",fortran"
       fi
+      if [ "$_ada" == "true" ]; then
+        _mingw_lang_args+=",ada"
+      fi
+
       if [ "$_win32threads" == "true" ]; then
         _win32threads_args="--enable-threads=win32"
       else
@@ -554,6 +559,16 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
         rm -f ${_dstdir}/share/man/man1/{dlltool,nlmconv,windres,windmc}*
 
       # gcc
+
+      ## languages
+      _gcc_lang_args="--enable-languages=c,c++,lto"
+      if [ "$_fortran" == "true" ]; then
+        _gcc_lang_args+=",fortran"
+      fi
+      if [ "$_ada" == "true" ]; then
+        _gcc_lang_args+=",ada"
+      fi
+
       mkdir -p ${_nowhere}/build/gcc_build && cd ${_nowhere}/build/gcc_build
       # hack! - libiberty configure tests for header files using "$CPP $CPPFLAGS"
       sed -i "/ac_cpp=/s/\$CPPFLAGS/\$CPPFLAGS -O2/"  ${_nowhere}/build/gcc/{libiberty,gcc}/configure
