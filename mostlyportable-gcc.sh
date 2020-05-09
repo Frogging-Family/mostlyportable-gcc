@@ -167,6 +167,11 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
     chmod a+x isl-${_isl}.tar.* && tar -xvf isl-${_isl}.tar.* >/dev/null 2>&1
     chmod a+x binutils-${_binutils}.tar.* && tar -xvf binutils-${_binutils}.tar.* >/dev/null 2>&1
 
+    if [ -n "${CUSTOM_GCC_PATH}" ]; then
+      _path_hack_prefix="${CUSTOM_GCC_PATH}/bin:${CUSTOM_GCC_PATH}/lib:${CUSTOM_GCC_PATH}/include:"
+      echo -e "CUSTOM_GCC_PATH = ${CUSTOM_GCC_PATH##*/}" >> "$_nowhere"/last_build_config.log
+    fi
+
     if [ "$_mingwbuild" == "true" ]; then
       if [ ! -e osl-${_osl}.tar.gz ]; then
         wget -c https://github.com/periscop/openscop/releases/download/${_osl}/osl-${_osl}.tar.gz
@@ -214,10 +219,10 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
           mv ${_nowhere}/build/proton_binutils* ${_nowhere}/
         fi
       fi
-      _path_hack="${_dstdir}/i686-w64-mingw32:${_dstdir}/x86_64-w64-mingw32:${_dstdir}/libexec:${_dstdir}/bin:${_dstdir}/lib:${_dstdir}/include:${PATH}"
+      _path_hack="${_path_hack_prefix}${_dstdir}/i686-w64-mingw32:${_dstdir}/x86_64-w64-mingw32:${_dstdir}/libexec:${_dstdir}/bin:${_dstdir}/lib:${_dstdir}/include:${PATH}"
     else
       # Make the process use our tools as they get built
-      _path_hack="${_dstdir}/bin:${_dstdir}/lib:${_dstdir}/include:${PATH}"
+      _path_hack="${_path_hack_prefix}${_dstdir}/bin:${_dstdir}/lib:${_dstdir}/include:${PATH}"
     fi
 
     # user patches
