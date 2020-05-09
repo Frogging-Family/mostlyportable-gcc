@@ -199,9 +199,9 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
         cd ${_nowhere}/build
         if [ ! -e mingw-w64-v${_mingw}.tar.bz2 ]; then
           wget -c https://sourceforge.net/projects/mingw-w64/files/mingw-w64/mingw-w64-release/mingw-w64-v${_mingw}.tar.bz2
-          chmod a+x mingw-w64-v${_mingw}.tar.* && tar -xvf mingw-w64-v${_mingw}.tar.* >/dev/null 2>&1
-          _mingw_path="mingw-w64-v${_mingw}"
         fi
+        chmod a+x mingw-w64-v${_mingw}.tar.* && tar -xvf mingw-w64-v${_mingw}.tar.* >/dev/null 2>&1
+        _mingw_path="mingw-w64-v${_mingw}"
       fi
 
       chmod a+x osl-${_osl}.tar.* && tar -xvf osl-${_osl}.tar.* >/dev/null 2>&1
