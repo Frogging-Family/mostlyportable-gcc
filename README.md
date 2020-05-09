@@ -3,7 +3,8 @@
 A simple distro-agnostic script to make portable x86_64 GCC/MinGW builds, handy to use custom or devel GCC. You can have as many as you want, unlike candy :frog: and move them wherever you see fit.
 
 ## Requirements:
-You'll need basic development tools installed (`base-devel`, `build-essential` or similar for your distro as well as `texlive-core`, and optionally `schedtool` to speedup compilation) to use it.
+You'll need basic development tools installed (`base-devel`, `build-essential` or similar for your distro as well as `texlive-core`, and optionally `schedtool` to speedup compilation) to use it. You may need up to 20GB space during compilation.
+
 **It is bound to the libc version of the host system, so cross-distro portability will only work with a corresponding libc version**
 
 ## Customization:
@@ -13,6 +14,8 @@ You'll need basic development tools installed (`base-devel`, `build-essential` o
 
 ## Building:
 Simply run `./mostlyportable-gcc.sh` and select the compiler you want to build. If you want to customize your build, edit the corresponding .cfg.
+
+You can all run `./mostlyportable-gcc.sh gcc`, `./mostlyportable-gcc.sh mingw` or `./mostlyportable-gcc.sh all` to build respectively gcc, mingw or both directly, skipping the prompt.
 
 ## How to use the resulting build:
 The most convenient way is to locally add bin/lib/include dirs of your build to PATH when building your project. That way your custom build will get priority for that process without altering your system.
