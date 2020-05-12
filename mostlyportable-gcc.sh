@@ -236,7 +236,7 @@ _nowhere="$PWD"
       cd "${_nowhere}"/build/binutils-"${_binutils}"
       patch -Np1 < "${_nowhere}"/build/proton_binutils1.binutilspatch
       patch -Np1 < "${_nowhere}"/build/proton_binutils2.binutilspatch
-      echo -e "Proton binutils patches applied" >> "$_nowhere"/last_build_config.log
+      echo -e "# Proton binutils patches applied" >> "$_nowhere"/last_build_config.log
     fi
 
   }
