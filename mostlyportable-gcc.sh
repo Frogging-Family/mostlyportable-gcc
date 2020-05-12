@@ -116,7 +116,7 @@ _nowhere="$PWD"
       cd "${_nowhere}"/build/gcc
       git checkout --force --no-track -B safezone origin/HEAD
       if [ -n "${_gcc_version}" ]; then
-        git checkout "${_gcc_version}"
+        git checkout "${_gcc_version}" || echo -e "Git checkout failed. Please make sure you're using a valid commit id or git tag for GCC." && exit 1
       fi
       git reset --hard HEAD
       git clean -xdf
@@ -192,7 +192,7 @@ _nowhere="$PWD"
         cd "${_nowhere}"/build/mingw-w64-git
         git checkout --force --no-track -B safezone origin/HEAD
         if [ -n "${_mingw}" ]; then
-          git checkout "${_mingw}"
+          git checkout "${_mingw}" || echo -e "Git checkout failed. Please make sure you're using a valid commit id or git tag for MinGW." && exit 1
         fi
         git reset --hard HEAD
         git clean -xdf
