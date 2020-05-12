@@ -210,12 +210,9 @@ _nowhere="$PWD"
       chmod a+x osl-"${_osl}".tar.* && tar -xvf osl-"${_osl}".tar.* >/dev/null 2>&1
       chmod a+x cloog-"${_cloog}".tar.* && tar -xvf cloog-"${_cloog}".tar.* >/dev/null 2>&1
 
-      if [[ "$_binutils" = 2.33* ]]; then
+      if [[ "$_binutils" = 2.33* ]] && [ "$_valve_patches" == "true" ]; then
         wget -c -O proton_binutils1.binutilspatch https://raw.githubusercontent.com/ValveSoftware/Proton/3ad34a0b3f41bac60caea39c742de69cb0e50895/mingw-w64-patches/binutils-0001.patch
         wget -c -O proton_binutils2.binutilspatch https://raw.githubusercontent.com/ValveSoftware/Proton/3ad34a0b3f41bac60caea39c742de69cb0e50895/mingw-w64-patches/binutils-0002.patch
-        if [ "$_valve_patches" == "true" ]; then
-          mv "${_nowhere}"/build/proton_binutils* "${_nowhere}"/
-        fi
       fi
       _path_hack="${_path_hack_prefix}${_dstdir}/i686-w64-mingw32:${_dstdir}/x86_64-w64-mingw32:${_dstdir}/libexec:${_dstdir}/bin:${_dstdir}/lib:${_dstdir}/include:${PATH}"
     else
@@ -233,6 +230,14 @@ _nowhere="$PWD"
     _userpatch_ext="binutils"
     cd "${_nowhere}"/build/binutils-"${_binutils}"
     user_patcher
+
+    # Proton binutils patches
+    if [[ "$_binutils" = 2.33* ]] && [ "$_valve_patches" == "true" ]; then
+      cd "${_nowhere}"/build/binutils-"${_binutils}"
+      patch -Np1 < "${_nowhere}"/build/proton_binutils1.binutilspatch
+      patch -Np1 < "${_nowhere}"/build/proton_binutils2.binutilspatch
+      echo -e "Proton binutils patches applied" >> "$_nowhere"/last_build_config.log
+    fi
 
   }
 
