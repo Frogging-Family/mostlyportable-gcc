@@ -695,5 +695,16 @@ _nowhere="$PWD"
       source "${_nowhere}"/mostlyportable-gcc.cfg && echo -e "\nUsing GCC config\n"
     fi
     _init && _build
+
+    if [ ! -e "/etc/ld.so.conf.d/50-mostlyportable-gcc.conf" ] && [ ! -e "/etc/ld.so.conf.d/50-libva1.conf" ] && [ ! -e "/etc/ld.so.conf.d/50-lib32-libva1.conf" ]; then
+      echo -e "  If no package currently installed adds your usual lib paths to '/etc/ld.so.conf.d/',\nyou'll need to copy the 50-mostlyportable-gcc.conf file to '/etc/ld.so.conf.d/'.\nOn Archlinux, you can alternatively install libva1 and lib32-libva1 packages to get those paths set."
+      echo -e "  Do you want to copy 50-mostlyportable-gcc.conf to '/etc/ld.so.conf.d/' now? This only needs to be done once."
+      read -rp "`echo $'     > N/y : '`" _ldconfmostlyportable;
+      if [ "$_ldconfmostlyportable" = "y" ]; then
+        sudo cp "${_nowhere}"/50-mostlyportable-gcc.conf /etc/ld.so.conf.d/ && sudo ldconfig
+      else
+        exit 0
+      fi
+    fi
   fi
 
