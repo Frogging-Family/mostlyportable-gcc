@@ -239,6 +239,16 @@ _nowhere="$PWD"
       echo -e "# Proton binutils patches applied" >> "$_nowhere"/last_build_config.log
     fi
 
+    # binutils 2.34 fix - https://sourceware.org/bugzilla/show_bug.cgi?id=25993#c4
+    if [[ "$_binutils" = 2.34* ]]; then
+      if [ ! -e "${_nowhere}/build/binutils234.binutilspatch" ]; then
+        cd "${_nowhere}"/build && wget -c -O binutils234.binutilspatch https://sourceware.org/bugzilla/attachment.cgi?id=12545
+      fi
+      cd "${_nowhere}"/build/binutils-"${_binutils}"
+      patch -Np1 < "${_nowhere}"/build/binutils234.binutilspatch
+      echo -e "# Binutils 2.34 fix applied" >> "$_nowhere"/last_build_config.log
+    fi
+
   }
 
   _makeandinstall() {
