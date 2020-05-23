@@ -131,6 +131,36 @@ _nowhere="$PWD"
     cd "${_nowhere}"/build/gcc/gcc
     _gcc_version=$(cat BASE-VER)
 
+    # binutils repo
+    if [ "$_use_binutils_git" == "true" ]; then
+      cd "${_nowhere}"
+      git clone --mirror "${_binutils_git}" binutils-git || true
+      cd "${_nowhere}"/binutils-git
+      if [[ "${_binutils_git}" != "$(git config --get remote.origin.url)" ]] ; then
+        echo "binutils-git is not a clone of ${_binutils_git}. Please delete binutils-git dir and try again."
+        exit 1
+      fi
+      echo -e "\nPlease be patient, it might take a while...\n"
+      git fetch --all -p
+      rm -rf "${_nowhere}"/build/binutils-git && git clone "${_nowhere}"/binutils-git "${_nowhere}"/build/binutils-git
+      cd "${_nowhere}"/build/binutils-git
+      git checkout --force --no-track -B safezone origin/HEAD
+      if [ -n "${_binutils}" ]; then
+        git checkout "${_binutils}" || { echo -e "Git checkout failed. Please make sure you're using a valid commit id or git tag for MinGW." ; exit 1; }
+      fi
+      git reset --hard HEAD
+      git clean -xdf
+      cd "${_nowhere}"/build
+      _binutils_path="binutils-git"
+    else
+      cd "${_nowhere}"/build
+      if [ ! -e binutils-"${_binutils}".tar.gz ]; then
+        wget -c https://ftp.gnu.org/gnu/binutils/binutils-"${_binutils}".tar.gz
+      fi
+      chmod a+x binutils-"${_binutils}".tar.* && tar -xvf binutils-"${_binutils}".tar.* >/dev/null 2>&1
+      _binutils_path="binutils-${binutils}"
+    fi
+
     cd "${_nowhere}"/build
 
     # Download needed toolset
@@ -146,9 +176,6 @@ _nowhere="$PWD"
     if [ ! -e isl-"${_isl}".tar.gz ]; then
       wget -c http://isl.gforge.inria.fr/isl-"${_isl}".tar.gz
     fi
-    if [ ! -e binutils-"${_binutils}".tar.gz ]; then
-      wget -c https://ftp.gnu.org/gnu/binutils/binutils-"${_binutils}".tar.gz
-    fi
 
     # libelf
     if [ "$_enable_libelf" == "true" ]; then
@@ -163,7 +190,6 @@ _nowhere="$PWD"
     chmod a+x mpfr-"${_mpfr}".tar.* && tar -xvJf mpfr-"${_mpfr}".tar.* >/dev/null 2>&1
     chmod a+x mpc-"${_mpc}".tar.* && tar -xvf mpc-"${_mpc}".tar.* >/dev/null 2>&1
     chmod a+x isl-"${_isl}".tar.* && tar -xvf isl-"${_isl}".tar.* >/dev/null 2>&1
-    chmod a+x binutils-"${_binutils}".tar.* && tar -xvf binutils-"${_binutils}".tar.* >/dev/null 2>&1
 
     if [ -n "${CUSTOM_GCC_PATH}" ]; then
       _path_hack_prefix="${CUSTOM_GCC_PATH}/bin:${CUSTOM_GCC_PATH}/lib:${CUSTOM_GCC_PATH}/include:"
@@ -183,7 +209,7 @@ _nowhere="$PWD"
         git clone --mirror "${_mingw_git}" mingw-w64-git || true
         cd "${_nowhere}"/mingw-w64-git
         if [[ "${_mingw_git}" != "$(git config --get remote.origin.url)" ]] ; then
-          echo "mingw-w64-git is not a clone of ${_mingw_git}. Please delete gcc dir and try again."
+          echo "mingw-w64-git is not a clone of ${_mingw_git}. Please delete mingw-w64-git dir and try again."
           exit 1
         fi
         echo -e "\nPlease be patient, it might take a while...\n"
@@ -329,7 +355,7 @@ _nowhere="$PWD"
       _makeandinstall || exit 1
 
       # mingw-w64-binutils
-      cd "${_nowhere}"/build/binutils-"${_binutils}"
+      cd "${_nowhere}"/build/"${_binutils_path}"
       #do not install libiberty
       sed -i 's/install_to_$(INSTALL_DEST) //' libiberty/Makefile.in
       # hack! - libiberty configure tests for header files using "$CPP $CPPFLAGS"
@@ -337,7 +363,7 @@ _nowhere="$PWD"
       for _target in $_targets; do
         echo -e "Building ${_target} cross binutils"
         mkdir -p "${_nowhere}"/build/binutils-"${_target}" && cd "${_nowhere}"/build/binutils-"${_target}"
-        PATH="${_path_hack}" "${_nowhere}"/build/binutils-"${_binutils}"/configure \
+        PATH="${_path_hack}" "${_nowhere}"/build/"${_binutils_path}"/configure \
           --target="${_target}" \
           --enable-lto \
           --enable-plugins \
@@ -549,11 +575,11 @@ _nowhere="$PWD"
       export PATH=${_path_hack}
 
       # binutils
-      cd "${_nowhere}"/build/binutils-"${_binutils}"
+      cd "${_nowhere}"/build/"${_binutils_path}"
       # hack! - libiberty configure tests for header files using "$CPP $CPPFLAGS"
       sed -i "/ac_cpp=/s/\$CPPFLAGS/\$CPPFLAGS -O2/" libiberty/configure
       mkdir -p "${_nowhere}"/build/binutils-build && cd "${_nowhere}"/build/binutils-build
-      "${_nowhere}"/build/binutils-"${_binutils}"/configure \
+      "${_nowhere}"/build/"${_binutils_path}"/configure \
         --prefix=${_dstdir} \
         --with-lib-path="${_dstdir}/lib" \
         --enable-deterministic-archives \
