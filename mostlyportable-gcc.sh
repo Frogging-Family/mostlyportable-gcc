@@ -158,7 +158,7 @@ _nowhere="$PWD"
         wget -c https://ftp.gnu.org/gnu/binutils/binutils-"${_binutils}".tar.gz
       fi
       chmod a+x binutils-"${_binutils}".tar.* && tar -xvf binutils-"${_binutils}".tar.* >/dev/null 2>&1
-      _binutils_path="binutils-${binutils}"
+      _binutils_path="binutils-${_binutils}"
     fi
 
     cd "${_nowhere}"/build
