@@ -549,7 +549,7 @@ _nowhere="$PWD"
         cd "${_nowhere}"/build/gcc-build-"${_target}"
         PATH="${_path_hack}" make install
         "${_target}"-strip "${_dstdir}"/"${_target}"/lib/*.dll || true
-        strip "${_dstdir}"/bin/"${_target}"-*
+        strip "${_dstdir}"/bin/"${_target}"-* || true
         if [ "$_fortran" == "false" ]; then
           strip "${_dstdir}"/lib/gcc/"${_target}"/"${_gcc_version}"/{cc1*,collect2,gnat1,lto*} || true
         else
@@ -562,7 +562,7 @@ _nowhere="$PWD"
       done
       for _binaries in "${_dstdir}"/bin/*; do
         if [[ "$_binaries" != *"eu"* ]]; then
-          strip "$_binaries"
+          strip "$_binaries" || true
         fi
       done
       # remove unnecessary files
