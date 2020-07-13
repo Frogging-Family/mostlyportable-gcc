@@ -47,7 +47,7 @@ _nowhere="$PWD"
   	        echo -e ""
   	        echo -e "######################################################"
   	        patch -Np1 -R < "${_f}"
-  	        echo "Reverted your own patch ${_f}" >> "$_nowhere"/last_build_config.log
+  	        echo "# Reverted your own patch ${_f}" >> "$_nowhere"/last_build_config.log
   	      fi
   	    done
   	  fi
@@ -69,7 +69,7 @@ _nowhere="$PWD"
   	        echo -e ""
   	        echo -e "######################################################"
   	        patch -Np1 < "${_f}"
-  	        echo "Applied your own patch ${_f}" >> "$_nowhere"/last_build_config.log
+  	        echo "# Applied your own patch ${_f}" >> "$_nowhere"/last_build_config.log
   	      fi
   	    done
   	  fi
@@ -258,7 +258,7 @@ _nowhere="$PWD"
 
     _userpatch_target="binutils"
     _userpatch_ext="binutils"
-    cd "${_nowhere}"/build/binutils-"${_binutils}"
+    cd "${_nowhere}"/build/"${_binutils_path}"
     user_patcher
 
     # Proton binutils patches
