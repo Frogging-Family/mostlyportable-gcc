@@ -620,7 +620,7 @@ _nowhere="$PWD"
       ${_nowhere}/build/gcc/configure \
         --with-pkgversion='TkG-mostlyportable' \
         --disable-bootstrap \
-        --enable-languages=c,c++,lto \
+        ${_gcc_lang_args} \
         --with-gcc-major-version-only \
         --enable-linker-build-id \
         --disable-libstdcxx-pch \
