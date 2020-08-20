@@ -524,6 +524,7 @@ _nowhere="$PWD"
           --with-pkgversion='TkG-mostlyportable' \
           --target="${_target}" \
           --libexecdir="${_dstdir}"/lib \
+          ${_mingw_lang_args} \
           --disable-shared \
           --enable-fully-dynamic-string \
           --enable-libstdcxx-time=yes \
