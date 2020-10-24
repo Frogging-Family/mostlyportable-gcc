@@ -284,7 +284,7 @@ _nowhere="$PWD"
       if [ ! -e "${_nowhere}/build/mingw8_libgomp_fix.gccpatch" ]; then
         cd "${_nowhere}"/build && wget -c -O mingw8_libgomp_fix.gccpatch https://raw.githubusercontent.com/msys2/MINGW-packages/master/mingw-w64-gcc/0020-libgomp-Don-t-hard-code-MS-printf-attributes.patch
       fi
-      cd "${_nowhere}"/build/"${_mingw_path}"
+      cd "${_nowhere}"/build/gcc
       patch -Np1 < "${_nowhere}"/build/mingw8_libgomp_fix.gccpatch
       echo -e "# MinGW 8.0.0 libgomp fix applied" >> "$_nowhere"/last_build_config.log
     fi
