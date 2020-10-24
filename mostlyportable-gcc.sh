@@ -231,9 +231,6 @@ _nowhere="$PWD"
         fi
         chmod a+x mingw-w64-v"${_mingw}".tar.* && tar -xvf mingw-w64-v"${_mingw}".tar.* >/dev/null 2>&1
         _mingw_path="mingw-w64-v${_mingw}"
-        if [ "${_mingw}" = "8.0.0" ]; then
-          wget -c -O mingw8_libgomp_fix.gccpatch https://raw.githubusercontent.com/msys2/MINGW-packages/master/mingw-w64-gcc/0020-libgomp-Don-t-hard-code-MS-printf-attributes.patch
-        fi
       fi
 
       chmod a+x osl-"${_osl}".tar.* && tar -xvf osl-"${_osl}".tar.* >/dev/null 2>&1
@@ -256,7 +253,7 @@ _nowhere="$PWD"
     # user patches
     _userpatch_target="gcc"
     _userpatch_ext="gcc"
-    cd ${_nowhere}/build/gcc
+    cd "${_nowhere}"/build/gcc
     user_patcher
 
     _userpatch_target="binutils"
@@ -280,6 +277,16 @@ _nowhere="$PWD"
       cd "${_nowhere}"/build/binutils-"${_binutils}"
       patch -Np1 < "${_nowhere}"/build/binutils234.binutilspatch
       echo -e "# Binutils 2.34 fix applied" >> "$_nowhere"/last_build_config.log
+    fi
+
+    # MinGW 8.0.0 libgomp fix - https://sourceforge.net/p/mingw-w64/bugs/853/
+    if [ "${_mingw}" = "8.0.0" ]; then
+      if [ ! -e "${_nowhere}/build/mingw8_libgomp_fix.gccpatch" ]; then
+        cd "${_nowhere}"/build && wget -c -O mingw8_libgomp_fix.gccpatch https://raw.githubusercontent.com/msys2/MINGW-packages/master/mingw-w64-gcc/0020-libgomp-Don-t-hard-code-MS-printf-attributes.patch
+      fi
+      cd "${_nowhere}"/build/"${_mingw_path}"
+      patch -Np1 < "${_nowhere}"/build/mingw8_libgomp_fix.gccpatch
+      echo -e "# MinGW 8.0.0 libgomp fix applied" >> "$_nowhere"/last_build_config.log
     fi
 
   }
