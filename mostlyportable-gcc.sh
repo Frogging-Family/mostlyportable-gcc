@@ -231,6 +231,9 @@ _nowhere="$PWD"
         fi
         chmod a+x mingw-w64-v"${_mingw}".tar.* && tar -xvf mingw-w64-v"${_mingw}".tar.* >/dev/null 2>&1
         _mingw_path="mingw-w64-v${_mingw}"
+        if [ "${_mingw}" = "8.0.0" ]; then
+          wget -c -O mingw8_libgomp_fix.gccpatch https://raw.githubusercontent.com/msys2/MINGW-packages/master/mingw-w64-gcc/0020-libgomp-Don-t-hard-code-MS-printf-attributes.patch
+        fi
       fi
 
       chmod a+x osl-"${_osl}".tar.* && tar -xvf osl-"${_osl}".tar.* >/dev/null 2>&1
