@@ -665,7 +665,7 @@ _nowhere="$PWD"
         --with-gmp="${_dstdir}" \
         --with-mpfr="${_dstdir}" \
         --with-mpc="${_dstdir}" \
-        --enable-offload-targets=nvptx-none,hsa \
+        --enable-offload-targets=nvptx-none \
         --build=x86_64-linux-gnu \
         --host=x86_64-linux-gnu \
         --target=x86_64-linux-gnu \
@@ -758,4 +758,3 @@ _nowhere="$PWD"
       fi
     fi
   fi
-
