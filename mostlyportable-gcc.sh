@@ -625,9 +625,10 @@ _nowhere="$PWD"
       fi
       
       ## add if statement without hsa offload for gcc 11 as depricated
-      _gcc-offload-args="--enable-offload-targets=nvptx-none,hsa"
       if [ "$_gcc_version" == "releases/gcc-11" ]; then
       _gcc-offload-args="--enable-offload-targets=nvptx-none"
+      else
+      _gcc-offload-args="--enable-offload-targets=nvptx-none,hsa"
       fi
 
       mkdir -p ${_nowhere}/build/gcc_build && cd ${_nowhere}/build/gcc_build
