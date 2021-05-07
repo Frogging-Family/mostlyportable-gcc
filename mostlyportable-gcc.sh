@@ -616,19 +616,11 @@ _nowhere="$PWD"
 
       ## languages
       _gcc_lang_args="--enable-languages=c,c++,lto"
-
       if [ "$_fortran" == "true" ]; then
         _gcc_lang_args+=",fortran"
       fi
       if [ "$_ada" == "true" ]; then
         _gcc_lang_args+=",ada"
-      fi
-      
-      ## add if statement without hsa offload for gcc 11 as depricated
-      if [ "$_gcc_version" == "releases/gcc-11" ]; then
-      _gcc-offload-args="--enable-offload-targets=nvptx-none"
-      else
-      _gcc-offload-args="--enable-offload-targets=nvptx-none,hsa"
       fi
 
       mkdir -p ${_nowhere}/build/gcc_build && cd ${_nowhere}/build/gcc_build
@@ -673,7 +665,7 @@ _nowhere="$PWD"
         --with-gmp="${_dstdir}" \
         --with-mpfr="${_dstdir}" \
         --with-mpc="${_dstdir}" \
-        ${_gcc-offload-args} \
+        --enable-offload-targets=nvptx-none \
         --build=x86_64-linux-gnu \
         --host=x86_64-linux-gnu \
         --target=x86_64-linux-gnu \
