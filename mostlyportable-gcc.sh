@@ -161,6 +161,37 @@ _nowhere="$PWD"
       _binutils_path="binutils-${_binutils}"
     fi
 
+    # isl repo
+    if [ "$_use_isl_git" == "true" ]; then
+      cd "${_nowhere}"
+      git clone --mirror "${_isl_git}" isl-git || true
+      cd "${_nowhere}"/isl-git
+      if [[ "${_isl_git}" != "$(git config --get remote.origin.url)" ]] ; then
+        echo "isl-git is not a clone of ${_isl_git}. Please delete isl-git dir and try again."
+        exit 1
+      fi
+      echo -e "\nPlease be patient, it might take a while...\n"
+      git fetch --all -p
+      rm -rf "${_nowhere}"/build/isl-git && git clone "${_nowhere}"/isl-git "${_nowhere}"/build/isl-git
+      cd "${_nowhere}"/build/isl-git
+      git checkout --force --no-track -B safezone origin/HEAD
+      if [ -n "${_isl}" ]; then
+        git checkout "${_isl}" || { echo -e "Git checkout failed. Please make sure you're using a valid commit id or git tag for MinGW." ; exit 1; }
+      fi
+      git reset --hard HEAD
+      git clean -xdf
+      ./autogen.sh
+      cd "${_nowhere}"/build
+      _isl_path="isl-git"
+    else
+      cd "${_nowhere}"/build
+      if [ ! -e isl-"${_isl}".tar.gz ]; then
+        wget -c http://isl.gforge.inria.fr/isl-"${_isl}".tar.gz
+      fi
+      chmod a+x isl-"${_isl}".tar.* && tar -xvf isl-"${_isl}".tar.* >/dev/null 2>&1
+      _isl_path="isl-${_isl}"
+    fi
+
     cd "${_nowhere}"/build
 
     # Download needed toolset
@@ -172,9 +203,6 @@ _nowhere="$PWD"
     fi
     if [ ! -e mpc-"${_mpc}".tar.gz ]; then
       wget -c ftp://ftp.gnu.org/gnu/mpc/mpc-"${_mpc}".tar.gz
-    fi
-    if [ ! -e isl-"${_isl}".tar.gz ]; then
-      wget -c http://isl.gforge.inria.fr/isl-"${_isl}".tar.gz
     fi
 
     # libelf
@@ -189,7 +217,6 @@ _nowhere="$PWD"
     chmod a+x gmp-"${_gmp}".tar.* && tar -xvJf gmp-"${_gmp}".tar.* >/dev/null 2>&1
     chmod a+x mpfr-"${_mpfr}".tar.* && tar -xvJf mpfr-"${_mpfr}".tar.* >/dev/null 2>&1
     chmod a+x mpc-"${_mpc}".tar.* && tar -xvf mpc-"${_mpc}".tar.* >/dev/null 2>&1
-    chmod a+x isl-"${_isl}".tar.* && tar -xvf isl-"${_isl}".tar.* >/dev/null 2>&1
 
     if [ -n "${CUSTOM_GCC_PATH}" ]; then
       _path_hack_prefix="${CUSTOM_GCC_PATH}/bin:${CUSTOM_GCC_PATH}/lib:${CUSTOM_GCC_PATH}/include:"
@@ -340,7 +367,7 @@ _nowhere="$PWD"
     _makeandinstall || exit 1
 
     # isl
-    cd "${_nowhere}"/build/isl-"${_isl}"
+    cd "${_nowhere}"/build/"${_isl_path}"
     PATH="${_path_hack}" ./configure \
       --prefix="${_dstdir}" \
       ${_commonconfig}
