@@ -220,7 +220,7 @@ _nowhere="$PWD"
 
     if [ -n "${CUSTOM_GCC_PATH}" ]; then
       _path_hack_prefix="${CUSTOM_GCC_PATH}/bin:${CUSTOM_GCC_PATH}/lib:${CUSTOM_GCC_PATH}/include:"
-      echo -e "GCC_PATH=${CUSTOM_GCC_PATH##*/}" >> "$_nowhere"/last_build_config.log
+      echo -e "GCC_PATH=${CUSTOM_GCC_PATH##*/}" >> "$_nowhere"/last_build_config.log #"
     fi
 
     if [ "$_mingwbuild" == "true" ]; then
@@ -510,7 +510,12 @@ _nowhere="$PWD"
           --enable-wildcard \
           ${_crt_configure_args} \
           --prefix="${_dstdir}"/"${_target}"
-        PATH="${_path_hack}" make -j$(nproc) || exit 1
+        # binutils 2.38 - disable parallel build preventing mingw compilation
+        if [[ "$_binutils" = 2.38* ]]; then
+          PATH="${_path_hack}" make -j1 || exit 1
+        else
+          PATH="${_path_hack}" make -j$(nproc) || exit 1
+        fi
       done
       for _target in ${_targets}; do
         echo -e "Installing ${_target} crt"
