@@ -19,5 +19,6 @@ build/
 gcc/
 mingw-w64-git/
 binutils-git/
+isl-git/
 gcc-mostlyportable*
 mingw-mostlyportable*
