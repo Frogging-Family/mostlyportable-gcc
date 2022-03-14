@@ -185,8 +185,8 @@ _nowhere="$PWD"
       _isl_path="isl-git"
     else
       cd "${_nowhere}"/build
-      if [ ! -e isl-"${_isl}".tar.gz ]; then
-        wget -c http://isl.gforge.inria.fr/isl-"${_isl}".tar.gz
+      if [ ! -e isl-"${_isl}".tar.xz ]; then
+        wget -c https://libisl.sourceforge.io/isl-"${_isl}".tar.xz
       fi
       chmod a+x isl-"${_isl}".tar.* && tar -xvf isl-"${_isl}".tar.* >/dev/null 2>&1
       _isl_path="isl-${_isl}"
