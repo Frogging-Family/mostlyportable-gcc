@@ -92,7 +92,7 @@ _nowhere="$PWD"
 
     if [ "$_mingwbuild" == "true" ]; then
       source "$_nowhere"/last_build_config.log
-      if [ -n "$BUILT_GCC_PATH" ]; then
+      if [ -n "${BUILT_GCC_PATH}" ]; then
         CUSTOM_GCC_PATH="${BUILT_GCC_PATH}"
       fi
     fi
