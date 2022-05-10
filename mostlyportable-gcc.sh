@@ -120,16 +120,17 @@ _nowhere="$PWD"
       fi
       git reset --hard HEAD
       git clean -xdf
-      # Use a separate src dir for mingw-w64-gcc-base
-      if [ "$_mingwbuild" == "true" ]; then
-        rm -rf "${_nowhere}"/build/gcc/.git
-        cp -r "${_nowhere}"/build/gcc "${_nowhere}"/build/gcc.base
-      fi
       _gcc_sub="-$(git describe --long --tags --always | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//;s/\//-/')"
     else
       cd "${_nowhere}"/build
       wget -c ftp://ftp.gnu.org/gnu/gcc/gcc-"${_gcc_version}"/gcc-"${_gcc_version}".tar.xz && chmod a+x gcc-"${_gcc_version}".tar.* && tar -xvJf gcc-"${_gcc_version}".tar.* >/dev/null 2>&1
       mv gcc-"${_gcc_version}" gcc
+    fi
+
+    # Use a separate src dir for mingw-w64-gcc-base
+    if [ "$_mingwbuild" == "true" ]; then
+      rm -rf "${_nowhere}"/build/gcc/.git
+      cp -r "${_nowhere}"/build/gcc "${_nowhere}"/build/gcc.base
     fi
 
     # Set/update gcc version from source
