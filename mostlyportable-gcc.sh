@@ -662,6 +662,7 @@ _nowhere="$PWD"
       #sed -e '1161 s|^|//|' -i ${_nowhere}/build/gcc/libsanitizer/sanitizer_common/sanitizer_platform_limits_posix.cc
       ${_nowhere}/build/gcc/configure \
         --with-pkgversion='TkG-mostlyportable' \
+        --libexecdir="${_dstdir}"/lib \
         --disable-bootstrap \
         ${_gcc_lang_args} \
         --with-gcc-major-version-only \
@@ -736,6 +737,9 @@ _nowhere="$PWD"
         make -C x86_64-linux-gnu/32/$lib install-toolexeclibLTLIBRARIES
       done
       make -C x86_64-linux-gnu/libstdc++-v3/po install
+      # create lto plugin link
+      mkdir -p "${_dstdir}"/lib/bfd-plugins
+      ln -sf "../gcc/x86_64-w64-mingw32/${_gcc_version}/liblto_plugin.so" "${_dstdir}"/lib/bfd-plugins/liblto_plugin.so
     fi
 
     if [ "$_mingwbuild" == "true" ]; then
