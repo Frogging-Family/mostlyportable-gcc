@@ -451,7 +451,7 @@ _nowhere="$PWD"
       done
 
       # Use a separate src dir for mingw-w64-gcc-base
-      cp -r "${_nowhere}"/build/gcc "${_nowhere}"/build/gcc.base
+      rsync -r --exclude '.git' "${_nowhere}"/build/gcc "${_nowhere}"/build/gcc.base
       # glibc-2.31 workaround
       #sed -e '1161 s|^|//|' -i ${_nowhere}/build/gcc/libsanitizer/sanitizer_common/sanitizer_platform_limits_posix.cc
       #sed -e '1161 s|^|//|' -i ${_nowhere}/build/gcc.base/libsanitizer/sanitizer_common/sanitizer_platform_limits_posix.cc
