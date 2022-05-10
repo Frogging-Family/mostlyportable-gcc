@@ -120,6 +120,11 @@ _nowhere="$PWD"
       fi
       git reset --hard HEAD
       git clean -xdf
+      # Use a separate src dir for mingw-w64-gcc-base
+      if [ "$_mingwbuild" == "true" ]; then
+        rm -rf "${_nowhere}"/build/gcc/.git
+        cp -r "${_nowhere}"/build/gcc "${_nowhere}"/build/gcc.base
+      fi
       _gcc_sub="-$(git describe --long --tags --always | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//;s/\//-/')"
     else
       cd "${_nowhere}"/build
@@ -210,7 +215,7 @@ _nowhere="$PWD"
       if [ ! -e elfutils-"${_libelf}".tar.bz2 ]; then
         wget -c https://sourceware.org/elfutils/ftp/"${_libelf}"/elfutils-"${_libelf}".tar.bz2
       fi
-      _libelf_flag="--with-libelf=${_dstdir}"
+      _libelf_flag="--with-libelf=${_dstdir}/usr"
       chmod a+x elfutils-"${_libelf}".tar.* && tar -xvf elfutils-"${_libelf}".tar.* >/dev/null 2>&1
     fi
 
@@ -335,7 +340,7 @@ _nowhere="$PWD"
     if [ "$_enable_libelf" == "true" ]; then
       cd "${_nowhere}"/build/elfutils-"${_libelf}"
       PATH="${_path_hack}" ./configure \
-        --prefix="${_dstdir}" \
+        --prefix="${_dstdir}/usr" \
         --program-prefix="eu-" \
         --enable-deterministic-archives \
         ${_commonconfig}
@@ -345,31 +350,31 @@ _nowhere="$PWD"
     # gmp
     cd "${_nowhere}"/build/gmp-"${_gmp}"
     PATH="${_path_hack}" ./configure \
-      --prefix="${_dstdir}" \
+      --prefix="${_dstdir}/usr" \
       ${_commonconfig}
     _makeandinstall || exit 1
 
     # mpfr
     cd "${_nowhere}"/build/mpfr-"${_mpfr}"
     PATH="${_path_hack}" ./configure \
-      --with-gmp="${_dstdir}" \
-      --prefix="${_dstdir}" \
+      --with-gmp="${_dstdir}"/usr \
+      --prefix="${_dstdir}/usr" \
       ${_commonconfig}
     _makeandinstall || exit 1
 
     # mpc
     cd "${_nowhere}"/build/mpc-"${_mpc}"
     PATH="${_path_hack}" ./configure \
-      --with-gmp="${_dstdir}" \
-      --with-mpfr="${_dstdir}" \
-      --prefix="${_dstdir}" \
+      --with-gmp="${_dstdir}"/usr \
+      --with-mpfr="${_dstdir}"/usr \
+      --prefix="${_dstdir}/usr" \
       ${_commonconfig}
     _makeandinstall || exit 1
 
     # isl
     cd "${_nowhere}"/build/"${_isl_path}"
     PATH="${_path_hack}" ./configure \
-      --prefix="${_dstdir}" \
+      --prefix="${_dstdir}/usr" \
       ${_commonconfig}
     _makeandinstall || exit 1
 
@@ -377,17 +382,17 @@ _nowhere="$PWD"
       # osl
       cd "${_nowhere}"/build/osl-"${_osl}"
       PATH="${_path_hack}" ./configure \
-        --with-gmp="${_dstdir}" \
-        --prefix="${_dstdir}" \
+        --with-gmp="${_dstdir}"/usr \
+        --prefix="${_dstdir}/usr" \
         ${_commonconfig}
       _makeandinstall || exit 1
 
       # cloog
       cd "${_nowhere}"/build/cloog-"${_cloog}"
       PATH="${_path_hack}" ./configure \
-        --with-isl="${_dstdir}" \
-        --with-osl="${_dstdir}" \
-        --prefix="${_dstdir}" \
+        --with-isl="${_dstdir}"/usr \
+        --with-osl="${_dstdir}"/usr \
+        --prefix="${_dstdir}/usr" \
         ${_commonconfig}
       _makeandinstall || exit 1
 
@@ -408,7 +413,7 @@ _nowhere="$PWD"
           --disable-multilib \
           --disable-nls \
           --disable-werror \
-          --prefix="${_dstdir}" \
+          --prefix="${_dstdir}/usr" \
           ${_commonconfig}
         PATH="${_path_hack}" make -j$(nproc) || exit 1
       done
@@ -426,16 +431,16 @@ _nowhere="$PWD"
           --enable-sdk=all \
           --enable-secure-api \
           --host="${_target}" \
-          --prefix="${_dstdir}"/"${_target}"
+          --prefix="${_dstdir}/usr"/"${_target}"
         PATH="${_path_hack}" make || exit 1
       done
       for _target in ${_targets}; do
         echo -e "Installing ${_target} headers"
         cd "${_nowhere}"/build/headers-"${_target}"
         PATH="${_path_hack}" make install
-        rm "${_dstdir}"/"${_target}"/include/pthread_signal.h
-        rm "${_dstdir}"/"${_target}"/include/pthread_time.h
-        rm "${_dstdir}"/"${_target}"/include/pthread_unistd.h
+        rm "${_dstdir}"/usr/"${_target}"/include/pthread_signal.h
+        rm "${_dstdir}"/usr/"${_target}"/include/pthread_time.h
+        rm "${_dstdir}"/usr/"${_target}"/include/pthread_unistd.h
       done
 
       # mingw-w64-headers-bootstrap
@@ -445,13 +450,11 @@ _nowhere="$PWD"
       echo "${_dummystring}" > pthread_time.h
       echo "${_dummystring}" > pthread_unistd.h
       for _target in ${_targets}; do
-        install -Dm644 "${_nowhere}"/build/dummy/pthread_signal.h "${_dstdir}"/"${_target}"/include/pthread_signal.h
-        install -Dm644 "${_nowhere}"/build/dummy/pthread_time.h "${_dstdir}"/"${_target}"/include/pthread_time.h
-        install -Dm644 "${_nowhere}"/build/dummy/pthread_unistd.h "${_dstdir}"/"${_target}"/include/pthread_unistd.h
+        install -Dm644 "${_nowhere}"/build/dummy/pthread_signal.h "${_dstdir}"/usr/"${_target}"/include/pthread_signal.h
+        install -Dm644 "${_nowhere}"/build/dummy/pthread_time.h "${_dstdir}"/usr/"${_target}"/include/pthread_time.h
+        install -Dm644 "${_nowhere}"/build/dummy/pthread_unistd.h "${_dstdir}"/usr/"${_target}"/include/pthread_unistd.h
       done
 
-      # Use a separate src dir for mingw-w64-gcc-base
-      rsync -r --exclude '.git' "${_nowhere}"/build/gcc "${_nowhere}"/build/gcc.base
       # glibc-2.31 workaround
       #sed -e '1161 s|^|//|' -i ${_nowhere}/build/gcc/libsanitizer/sanitizer_common/sanitizer_platform_limits_posix.cc
       #sed -e '1161 s|^|//|' -i ${_nowhere}/build/gcc.base/libsanitizer/sanitizer_common/sanitizer_platform_limits_posix.cc
@@ -478,11 +481,11 @@ _nowhere="$PWD"
           --enable-version-specific-runtime-libs \
           --disable-multilib \
           --enable-checking=release \
-          --with-isl="${_dstdir}" \
-          --with-gmp="${_dstdir}" \
-          --with-mpfr="${_dstdir}" \
-          --with-mpc="${_dstdir}" \
-          --prefix="${_dstdir}" \
+          --with-isl="${_dstdir}"/usr \
+          --with-gmp="${_dstdir}"/usr \
+          --with-mpfr="${_dstdir}"/usr \
+          --with-mpc="${_dstdir}"/usr \
+          --prefix="${_dstdir}/usr" \
           ${_exceptions_args} \
           ${_commonconfig} \
           ${_libelf_flag}
@@ -492,8 +495,8 @@ _nowhere="$PWD"
         echo -e "Installing ${_target} GCC C compiler"
         cd "${_nowhere}"/build/gcc-base-"${_target}"
         PATH="${_path_hack}" make install-gcc
-        strip "${_dstdir}"/bin/"${_target}"-* || true
-        strip "${_dstdir}"/libexec/gcc/"${_target}"/"${_gcc_version}"/{cc1,collect2,lto*} || true
+        strip "${_dstdir}"/usr/bin/"${_target}"-* || true
+        strip "${_dstdir}"/usr/libexec/gcc/"${_target}"/"${_gcc_version}"/{cc1,collect2,lto*} || true
       done
 
       # mingw-w64-crt
@@ -509,7 +512,7 @@ _nowhere="$PWD"
           --host="${_target}" \
           --enable-wildcard \
           ${_crt_configure_args} \
-          --prefix="${_dstdir}"/"${_target}"
+          --prefix="${_dstdir}/usr"/"${_target}"
         # binutils 2.38 - disable parallel build preventing mingw compilation
         if [[ "$_binutils" = 2.38* ]]; then
           PATH="${_path_hack}" make -j1 || exit 1
@@ -529,14 +532,14 @@ _nowhere="$PWD"
         mkdir -p "${_nowhere}"/build/winpthreads-build-"${_target}" && cd "${_nowhere}"/build/winpthreads-build-"${_target}"
         PATH="${_path_hack}" "${_nowhere}"/build/"${_mingw_path}"/mingw-w64-libraries/winpthreads/configure \
           --host="${_target}" \
-          --prefix="${_dstdir}"/"${_target}" \
+          --prefix="${_dstdir}/usr"/"${_target}" \
           ${_commonconfig}
         PATH="${_path_hack}" make -j$(nproc) || exit 1
       done
       for _target in ${_targets}; do
         cd "${_nowhere}"/build/winpthreads-build-"${_target}"
         PATH="${_path_hack}" make install
-        "${_target}"-strip --strip-unneeded "${_dstdir}"/"${_target}"/bin/*.dll  || true
+        "${_target}"-strip --strip-unneeded "${_dstdir}"/usr/"${_target}"/bin/*.dll  || true
       done
 
       # mingw-w64-gcc
@@ -565,7 +568,7 @@ _nowhere="$PWD"
         PATH="${_path_hack}" "${_nowhere}"/build/gcc/configure \
           --with-pkgversion='TkG-mostlyportable' \
           --target="${_target}" \
-          --libexecdir="${_dstdir}"/lib \
+          --libexecdir="${_dstdir}/usr/lib" \
           ${_mingw_lang_args} \
           --disable-shared \
           --enable-fully-dynamic-string \
@@ -577,11 +580,11 @@ _nowhere="$PWD"
           --enable-libgomp \
           --disable-multilib \
           --enable-checking=release \
-          --with-isl="${_dstdir}" \
-          --with-gmp="${_dstdir}" \
-          --with-mpfr="${_dstdir}" \
-          --with-mpc="${_dstdir}" \
-          --prefix="${_dstdir}" \
+          --with-isl="${_dstdir}"/usr \
+          --with-gmp="${_dstdir}"/usr \
+          --with-mpfr="${_dstdir}"/usr \
+          --with-mpc="${_dstdir}"/usr \
+          --prefix="${_dstdir}/usr" \
           ${_exceptions_args} \
           ${_fortran_args} \
           ${_win32threads_args} \
@@ -591,29 +594,35 @@ _nowhere="$PWD"
       for _target in ${_targets}; do
         cd "${_nowhere}"/build/gcc-build-"${_target}"
         PATH="${_path_hack}" make install
-        "${_target}"-strip "${_dstdir}"/"${_target}"/lib/*.dll || true
-        strip "${_dstdir}"/bin/"${_target}"-* || true
+        "${_target}"-strip "${_dstdir}"/usr/"${_target}"/lib/*.dll || true
+        strip "${_dstdir}"/usr/bin/"${_target}"-* || true
         if [ "$_fortran" == "false" ]; then
-          strip "${_dstdir}"/lib/gcc/"${_target}"/"${_gcc_version}"/{cc1*,collect2,gnat1,lto*} || true
+          strip "${_dstdir}"/usr/lib/gcc/"${_target}"/"${_gcc_version}"/{cc1*,collect2,gnat1,lto*} || true
         else
-          strip "${_dstdir}"/lib/gcc/"${_target}"/"${_gcc_version}"/{cc1*,collect2,gnat1,f951,lto*} || true
+          strip "${_dstdir}"/usr/lib/gcc/"${_target}"/"${_gcc_version}"/{cc1*,collect2,gnat1,f951,lto*} || true
         fi
-        ln -s "${_target}"-gcc "${_dstdir}"/bin/"${_target}"-cc
+        ln -s "${_target}"-gcc "${_dstdir}"/usr/bin/"${_target}"-cc
         # mv dlls
-        mkdir -p "${_dstdir}"/"${_target}"/bin/
-        mv "${_dstdir}"/"${_target}"/lib/*.dll "${_dstdir}"/"${_target}"/bin/ || true
+        mkdir -p "${_dstdir}"/usr/"${_target}"/bin/
+        mv "${_dstdir}"/usr/"${_target}"/lib/*.dll "${_dstdir}"/usr/"${_target}"/bin/ || true
       done
-      for _binaries in "${_dstdir}"/bin/*; do
+      for _binaries in "${_dstdir}"/usr/bin/*; do
         if [[ "$_binaries" != *"eu"* ]]; then
           strip "$_binaries" || true
         fi
       done
       # remove unnecessary files
-      rm -rf "${_dstdir}"/share
-      rm -f "${_dstdir}"/lib/libcc1.*
+      rm -rf "${_dstdir}"/usr/share
+      rm -f "${_dstdir}"/usr/lib/libcc1.*
       # create lto plugin link
-      mkdir -p "${_dstdir}"/lib/bfd-plugins
-      ln -sf "../gcc/x86_64-w64-mingw32/${_gcc_version}/liblto_plugin.so" "${_dstdir}"/lib/bfd-plugins/liblto_plugin.so
+      mkdir -p "${_dstdir}"/usr/lib/bfd-plugins
+      ln -sf "../gcc/x86_64-w64-mingw32/${_gcc_version}/liblto_plugin.so" "${_dstdir}"/usr/lib/bfd-plugins/liblto_plugin.so
+      ln -s "./usr/bin" "${_dstdir}"/
+      ln -s "./usr/lib" "${_dstdir}"/
+      # Ninja hack for Arch - Just leaving this here in case we have some ninja case for MinGW
+      #for _lib32f in /usr/lib32/*; do
+      #  ln -s $_lib32f "${_dstdir}"/usr/lib32/
+      #done
     else
       export PATH=${_path_hack}
 
@@ -623,8 +632,8 @@ _nowhere="$PWD"
       sed -i "/ac_cpp=/s/\$CPPFLAGS/\$CPPFLAGS -O2/" libiberty/configure
       mkdir -p "${_nowhere}"/build/binutils-build && cd "${_nowhere}"/build/binutils-build
       "${_nowhere}"/build/"${_binutils_path}"/configure \
-        --prefix=${_dstdir} \
-        --with-lib-path="${_dstdir}/lib" \
+        --prefix=${_dstdir}/usr \
+        --with-lib-path="${_dstdir}/usr/lib" \
         --enable-deterministic-archives \
         --enable-gold \
         --enable-ld=default \
@@ -639,10 +648,10 @@ _nowhere="$PWD"
         --with-system-zlib \
         ${_commonconfig}
         make -j$(nproc) configure-host || exit 1
-        make -j$(nproc) tooldir="${_dstdir}" || exit 1
-        make -j$(nproc) prefix="${_dstdir}" tooldir="${_dstdir}" install
+        make -j$(nproc) tooldir="${_dstdir}"/usr || exit 1
+        make -j$(nproc) prefix="${_dstdir}"/usr tooldir="${_dstdir}"/usr install
         # Remove unwanted files
-        rm -f "${_dstdir}"/share/man/man1/{dlltool,nlmconv,windres,windmc}*
+        rm -f "${_dstdir}"/usr/share/man/man1/{dlltool,nlmconv,windres,windmc}*
 
       # gcc
 
@@ -662,7 +671,9 @@ _nowhere="$PWD"
       #sed -e '1161 s|^|//|' -i ${_nowhere}/build/gcc/libsanitizer/sanitizer_common/sanitizer_platform_limits_posix.cc
       ${_nowhere}/build/gcc/configure \
         --with-pkgversion='TkG-mostlyportable' \
-        --libexecdir="${_dstdir}"/lib \
+        --libdir="${_dstdir}/usr/lib" \
+        --libexecdir="${_dstdir}/usr/lib" \
+        --with-lib-path="${_dstdir}/usr/lib" \
         --disable-bootstrap \
         ${_gcc_lang_args} \
         --with-gcc-major-version-only \
@@ -691,13 +702,13 @@ _nowhere="$PWD"
         --disable-werror \
         --enable-checking=release \
         --with-fpmath=sse \
-        --prefix="${_dstdir}" \
+        --prefix="${_dstdir}/usr" \
         --with-tune=generic \
         --without-cuda-driver \
-        --with-isl="${_dstdir}" \
-        --with-gmp="${_dstdir}" \
-        --with-mpfr="${_dstdir}" \
-        --with-mpc="${_dstdir}" \
+        --with-isl="${_dstdir}"/usr \
+        --with-gmp="${_dstdir}"/usr \
+        --with-mpfr="${_dstdir}"/usr \
+        --with-mpc="${_dstdir}"/usr \
         --enable-offload-targets=nvptx-none \
         --build=x86_64-linux-gnu \
         --host=x86_64-linux-gnu \
@@ -706,7 +717,7 @@ _nowhere="$PWD"
         #--enable-libstdcxx-debug
       make -j$(nproc) || exit 1
       make install
-      ln -s gcc ${_dstdir}/bin/cc
+      ln -s gcc ${_dstdir}/usr/bin/cc
 
       #libgcc
       cd ${_nowhere}/build/gcc_build
@@ -716,8 +727,8 @@ _nowhere="$PWD"
       make -C gcc install-po
       make -C x86_64-linux-gnu/libgcc install-shared
       make -C x86_64-linux-gnu/32/libgcc install-shared
-      rm -f "${_dstdir}/lib/gcc/x86_64-linux-gnu/${_gcc_version}/libgcc_eh.a"
-      rm -f "${_dstdir}/lib/gcc/x86_64-linux-gnu/${_gcc_version}/32/libgcc_eh.a"
+      rm -f "${_dstdir}/usr/lib/gcc/x86_64-linux-gnu/${_gcc_version}/libgcc_eh.a"
+      rm -f "${_dstdir}/usr/lib/gcc/x86_64-linux-gnu/${_gcc_version}/32/libgcc_eh.a"
       for lib in libatomic \
            libgomp \
            libitm \
@@ -738,8 +749,17 @@ _nowhere="$PWD"
       done
       make -C x86_64-linux-gnu/libstdc++-v3/po install
       # create lto plugin link
-      mkdir -p "${_dstdir}"/lib/bfd-plugins
-      ln -sf "../gcc/x86_64-w64-mingw32/${_gcc_version}/liblto_plugin.so" "${_dstdir}"/lib/bfd-plugins/liblto_plugin.so
+      mkdir -p "${_dstdir}"/usr/lib/bfd-plugins
+      ln -sf "../gcc/x86_64-linux-gnu/${_gcc_version}/liblto_plugin.so" "${_dstdir}"/usr/lib/bfd-plugins/liblto_plugin.so
+      ln -s "./usr/bin" "${_dstdir}"/
+      ln -s "./usr/lib" "${_dstdir}"/
+      ln -s "./usr/lib64" "${_dstdir}"/
+      # Ninja hack for Arch
+      for _lib32f in /usr/lib32/*; do
+        if [ ! -f "${_dstdir}/usr/lib32/${_lib32f##*/}" ]; then
+          ln -s "$_lib32f" "${_dstdir}"/usr/lib32/
+        fi
+      done
     fi
 
     if [ "$_mingwbuild" == "true" ]; then
