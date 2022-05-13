@@ -756,11 +756,12 @@ _nowhere="$PWD"
       ln -s "./usr/lib" "${_dstdir}"/
       ln -s "./usr/lib64" "${_dstdir}"/
       # Ninja hack for Arch
-      for _lib32f in /usr/lib32/*; do
-        if [ ! -f "${_dstdir}/usr/lib32/${_lib32f##*/}" ]; then
-          ln -s "$_lib32f" "${_dstdir}"/usr/lib32/
-        fi
-      done
+      #for _lib32f in /usr/lib32/*; do
+      #  if [ ! -f "${_dstdir}/usr/lib32/${_lib32f##*/}" ]; then
+      #    ln -s "$_lib32f" "${_dstdir}"/usr/lib32/
+      #  fi
+      #done
+      ln -s /usr/lib32/libzstd* "${_dstdir}"/usr/lib32/
     fi
 
     if [ "$_mingwbuild" == "true" ]; then
