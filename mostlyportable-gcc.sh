@@ -550,6 +550,13 @@ _nowhere="$PWD"
         _exceptions_args="--disable-dw2-exceptions"
       fi
 
+      # Bootstrap
+      if [ "$_bootstrap" = "true" ]; then
+        _with_bootstrap="--enable-bootstrap"
+      else
+        _with_bootstrap="--disable-bootstrap"
+      fi
+
       ## languages
       _mingw_lang_args="--enable-languages=c,lto,c++,objc,obj-c++"
       if [ "$_fortran" == "true" ]; then
@@ -589,7 +596,7 @@ _nowhere="$PWD"
           ${_exceptions_args} \
           ${_fortran_args} \
           ${_win32threads_args} \
-          ${_libelf_flag}
+          $_with_bootstrap ${_libelf_flag}
         make -j$(nproc) || exit 1
       done
       for _target in ${_targets}; do
@@ -665,6 +672,18 @@ _nowhere="$PWD"
         _gcc_lang_args+=",ada"
       fi
 
+      # Bootstrap
+      if [ "$_bootstrap" = "true" ]; then
+        _with_bootstrap="--enable-bootstrap"
+      else
+        _with_bootstrap="--disable-bootstrap"
+      fi
+
+      # Bootstrap LTO
+      if [ "$_bootstrap_lto" = "true" ]; then
+        _lto_bootstrap="--with-build-config=bootstrap-lto"
+      fi
+
       mkdir -p ${_nowhere}/build/gcc_build && cd ${_nowhere}/build/gcc_build
       # hack! - libiberty configure tests for header files using "$CPP $CPPFLAGS"
       sed -i "/ac_cpp=/s/\$CPPFLAGS/\$CPPFLAGS -O2/"  "${_nowhere}"/build/gcc/{libiberty,gcc}/configure
@@ -675,46 +694,35 @@ _nowhere="$PWD"
         --libdir="${_dstdir}/usr/lib" \
         --libexecdir="${_dstdir}/usr/lib" \
         --with-lib-path="${_dstdir}/usr/lib" \
-        --disable-bootstrap \
         ${_gcc_lang_args} \
         --with-gcc-major-version-only \
-        --enable-linker-build-id \
-        --disable-libstdcxx-pch \
-        --without-included-gettext \
-        --enable-libgomp \
-        --enable-lto \
-        --enable-threads=posix \
-        --enable-tls \
-        --enable-nls \
-        --enable-clocale=gnu \
-        --enable-libstdcxx-time=yes \
-        --with-default-libstdcxx-abi=new \
-        --enable-gnu-unique-object \
-        --disable-vtable-verify \
-        --enable-plugin \
-        --enable-default-pie \
-        --with-target-system-zlib=auto \
-        --with-system-zlib \
-        --enable-multiarch \
-        --with-arch-32=i686 \
-        --with-abi=m64 \
-        --with-multilib-list=m32,m64 \
-        --enable-multilib \
-        --disable-werror \
-        --enable-checking=release \
-        --with-fpmath=sse \
         --prefix="${_dstdir}/usr" \
-        --with-tune=generic \
-        --without-cuda-driver \
         --with-isl="${_dstdir}"/usr \
         --with-gmp="${_dstdir}"/usr \
         --with-mpfr="${_dstdir}"/usr \
         --with-mpc="${_dstdir}"/usr \
-        --enable-offload-targets=nvptx-none \
-        --build=x86_64-linux-gnu \
-        --host=x86_64-linux-gnu \
-        --target=x86_64-linux-gnu \
-        ${_libelf_flag}
+        --with-linker-hash-style=gnu \
+        --with-system-zlib \
+        --enable-__cxa_atexit \
+        --enable-cet=auto \
+        --enable-checking=release \
+        --enable-clocale=gnu \
+        --enable-default-pie \
+        --enable-default-ssp \
+        --enable-gnu-indirect-function \
+        --enable-gnu-unique-object \
+        --enable-linker-build-id \
+        --enable-lto \
+        --enable-multilib \
+        --enable-plugin \
+        --enable-shared \
+        --enable-threads=posix \
+        --disable-libssp \
+        --disable-libstdcxx-pch \
+        --disable-werror \
+        --without-cuda-driver \
+        --enable-link-serialization=1 \
+        $_with_bootstrap $_lto_bootstrap ${_libelf_flag}
         #--enable-libstdcxx-debug
       make -j$(nproc) || exit 1
       make install
@@ -722,14 +730,14 @@ _nowhere="$PWD"
 
       #libgcc
       cd ${_nowhere}/build/gcc_build
-      make -C x86_64-linux-gnu/libgcc install
-      make -C x86_64-linux-gnu/32/libgcc install
+      make -C x86_64-pc-linux-gnu/libgcc install
+      make -C x86_64-pc-linux-gnu/32/libgcc install
       make -C libcpp install
       make -C gcc install-po
-      make -C x86_64-linux-gnu/libgcc install-shared
-      make -C x86_64-linux-gnu/32/libgcc install-shared
-      rm -f "${_dstdir}/usr/lib/gcc/x86_64-linux-gnu/${_gcc_version}/libgcc_eh.a"
-      rm -f "${_dstdir}/usr/lib/gcc/x86_64-linux-gnu/${_gcc_version}/32/libgcc_eh.a"
+      make -C x86_64-pc-linux-gnu/libgcc install-shared
+      make -C x86_64-pc-linux-gnu/32/libgcc install-shared
+      rm -f "${_dstdir}/usr/lib/gcc/x86_64-pc-linux-gnu/${_gcc_version}/libgcc_eh.a"
+      rm -f "${_dstdir}/usr/lib/gcc/x86_64-pc-linux-gnu/${_gcc_version}/32/libgcc_eh.a"
       for lib in libatomic \
            libgomp \
            libitm \
@@ -737,7 +745,7 @@ _nowhere="$PWD"
            libsanitizer/{a,l,ub,t}san \
            libstdc++-v3/src \
            libvtv; do
-        make -C x86_64-linux-gnu/$lib install-toolexeclibLTLIBRARIES
+        make -C x86_64-pc-linux-gnu/$lib install-toolexeclibLTLIBRARIES
       done
       for lib in libatomic \
            libgomp \
@@ -746,12 +754,12 @@ _nowhere="$PWD"
            libsanitizer/{a,l,ub}san \
            libstdc++-v3/src \
            libvtv; do
-        make -C x86_64-linux-gnu/32/$lib install-toolexeclibLTLIBRARIES
+        make -C x86_64-pc-linux-gnu/32/$lib install-toolexeclibLTLIBRARIES
       done
-      make -C x86_64-linux-gnu/libstdc++-v3/po install
+      make -C x86_64-pc-linux-gnu/libstdc++-v3/po install
       # create lto plugin link
       mkdir -p "${_dstdir}"/usr/lib/bfd-plugins
-      ln -sf "../gcc/x86_64-linux-gnu/${_gcc_version}/liblto_plugin.so" "${_dstdir}"/usr/lib/bfd-plugins/liblto_plugin.so
+      ln -sf "../gcc/x86_64-pc-linux-gnu/${_gcc_version}/liblto_plugin.so" "${_dstdir}"/usr/lib/bfd-plugins/liblto_plugin.so
       ln -s "./usr/bin" "${_dstdir}"/
       ln -s "./usr/lib" "${_dstdir}"/
       ln -s "./usr/lib64" "${_dstdir}"/
