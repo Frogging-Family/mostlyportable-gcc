@@ -624,7 +624,7 @@ _nowhere="$PWD"
       rm -f "${_dstdir}"/usr/lib/libcc1.*
       # create lto plugin link
       mkdir -p "${_dstdir}"/usr/lib/bfd-plugins
-      ln -sf "../gcc/x86_64-w64-mingw32/${_gcc_version}/liblto_plugin.so" "${_dstdir}"/usr/lib/bfd-plugins/liblto_plugin.so
+      ln -sf "../libexec/gcc/x86_64-w64-mingw32/${_gcc_version}/liblto_plugin.so" "${_dstdir}"/usr/lib/bfd-plugins/liblto_plugin.so
       ln -s "./usr/bin" "${_dstdir}"/
       ln -s "./usr/lib" "${_dstdir}"/
       # Ninja hack for Arch - Just leaving this here in case we have some ninja case for MinGW
