@@ -90,6 +90,10 @@ _nowhere="$PWD"
       source "$_EXT_CONFIG_PATH" && echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override customization.cfg values.\n"
     fi
 
+    # Clear dstdir before building
+    echo -e "Cleaning up..."
+    rm -rf ${_dstdir}/*
+
     if [ "$_mingwbuild" == "true" ]; then
       source "$_nowhere"/last_build_config.log
       if [ -n "${BUILT_GCC_PATH}" ]; then
@@ -129,6 +133,7 @@ _nowhere="$PWD"
 
     # Use a separate src dir for mingw-w64-gcc-base
     if [ "$_mingwbuild" == "true" ]; then
+      echo "Making a copy of the gcc dir for mingw-w64-gcc-base..."
       rm -rf "${_nowhere}"/build/gcc/.git
       cp -r "${_nowhere}"/build/gcc "${_nowhere}"/build/gcc.base
     fi
@@ -225,7 +230,7 @@ _nowhere="$PWD"
     chmod a+x mpc-"${_mpc}".tar.* && tar -xvf mpc-"${_mpc}".tar.* >/dev/null 2>&1
 
     if [ -n "${CUSTOM_GCC_PATH}" ]; then
-      _path_hack_prefix="${CUSTOM_GCC_PATH}/bin:${CUSTOM_GCC_PATH}/lib:${CUSTOM_GCC_PATH}/include:"
+      _path_hack_prefix=$( find "$CUSTOM_GCC_PATH/" -maxdepth 1 -printf "%p:" )
       echo -e "GCC_PATH=${CUSTOM_GCC_PATH##*/}" >> "$_nowhere"/last_build_config.log #"
     fi
 
@@ -277,10 +282,22 @@ _nowhere="$PWD"
           wget -c -O proton_binutils2.binutilspatch https://raw.githubusercontent.com/ValveSoftware/Proton/3ad34a0b3f41bac60caea39c742de69cb0e50895/mingw-w64-patches/binutils-0002.patch
         fi
       fi
-      _path_hack="${_path_hack_prefix}${_dstdir}/i686-w64-mingw32:${_dstdir}/x86_64-w64-mingw32:${_dstdir}/libexec:${_dstdir}/bin:${_dstdir}/lib:${_dstdir}/include:${PATH}"
+      # Make the process use our tools as they get built
+      ( mkdir -p "$_dstdir"/usr/{bin,i686-w64-mingw32,x86_64-w64-mingw32,include,lib,libexec} &&
+      cd "$_dstdir" &&
+      ln -s "./usr/bin" "${_dstdir}"/
+      ln -s "./usr/lib" "${_dstdir}"/ )
+      _path_hack=${_path_hack_prefix}$( find "$_dstdir/" -maxdepth 1 -printf "%p:" )${PATH}
+      echo -e "# Effective path used: $_path_hack" >> "$_nowhere"/last_build_config.log
     else
       # Make the process use our tools as they get built
-      _path_hack="${_path_hack_prefix}${_dstdir}/bin:${_dstdir}/lib:${_dstdir}/include:${PATH}"
+      ( mkdir -p "$_dstdir"/usr/{bin,include,lib,lib32,lib64,share} &&
+      cd "$_dstdir" &&
+      ln -s "./usr/bin" "${_dstdir}"/
+      ln -s "./usr/lib" "${_dstdir}"/
+      ln -s "./usr/lib64" "${_dstdir}"/ )
+      _path_hack=${_path_hack_prefix}$( find "$_dstdir/" -maxdepth 1 -printf "%p:" )${PATH}
+      echo -e "# Effective path used: $_path_hack" >> "$_nowhere"/last_build_config.log
     fi
 
     # user patches
@@ -330,10 +347,6 @@ _nowhere="$PWD"
   }
 
   _build() {
-    # Clear dstdir before building
-    echo -e "Cleaning up..."
-    rm -rf ${_dstdir}/*
-
     _commonconfig="--disable-shared --enable-static"
     _targets="i686-w64-mingw32 x86_64-w64-mingw32"
 
@@ -625,8 +638,6 @@ _nowhere="$PWD"
       # create lto plugin link
       mkdir -p "${_dstdir}"/usr/lib/bfd-plugins
       ln -sf "../gcc/x86_64-w64-mingw32/${_gcc_version}/liblto_plugin.so" "${_dstdir}"/usr/lib/bfd-plugins/liblto_plugin.so
-      ln -s "./usr/bin" "${_dstdir}"/
-      ln -s "./usr/lib" "${_dstdir}"/
       # Ninja hack for Arch - Just leaving this here in case we have some ninja case for MinGW
       #for _lib32f in /usr/lib32/*; do
       #  ln -s $_lib32f "${_dstdir}"/usr/lib32/
@@ -760,9 +771,6 @@ _nowhere="$PWD"
       # create lto plugin link
       mkdir -p "${_dstdir}"/usr/lib/bfd-plugins
       ln -sf "../gcc/x86_64-pc-linux-gnu/${_gcc_version}/liblto_plugin.so" "${_dstdir}"/usr/lib/bfd-plugins/liblto_plugin.so
-      ln -s "./usr/bin" "${_dstdir}"/
-      ln -s "./usr/lib" "${_dstdir}"/
-      ln -s "./usr/lib64" "${_dstdir}"/
       # Ninja hack for Arch
       #for _lib32f in /usr/lib32/*; do
       #  if [ ! -f "${_dstdir}/usr/lib32/${_lib32f##*/}" ]; then
