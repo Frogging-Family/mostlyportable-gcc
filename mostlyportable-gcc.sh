@@ -103,6 +103,9 @@ _nowhere="$PWD"
 
     echo -e "# Last mostlyportable-gcc configuration - $(date) :\n" > "$_nowhere"/last_build_config.log
     echo -e "# External configuration file $_EXT_CONFIG_PATH will be used to override customization.cfg values.\n" >> "$_nowhere"/last_build_config.log
+    if [ -n "${BUILT_GCC_PATH}" ]; then
+      echo -e "BUILT_GCC_PATH=${BUILT_GCC_PATH}\n" >> "$_nowhere"/last_build_config.log
+    fi
 
     mkdir -p "${_nowhere}"/build
 
@@ -287,7 +290,7 @@ _nowhere="$PWD"
       cd "$_dstdir" &&
       ln -s "./usr/bin" "${_dstdir}"/
       ln -s "./usr/lib" "${_dstdir}"/ )
-      _path_hack=${_path_hack_prefix}$( find "$_dstdir/" -maxdepth 1 -printf "%p:" )${PATH}
+      _path_hack=${_path_hack_prefix}${PATH}
       echo -e "# Effective path used: $_path_hack" >> "$_nowhere"/last_build_config.log
     else
       # Make the process use our tools as they get built
@@ -343,7 +346,7 @@ _nowhere="$PWD"
 
   _makeandinstall() {
     PATH="${_path_hack}" schedtool -B -n 1 -e ionice -n 1 make -j$(nproc) || PATH="${_path_hack}" make -j$(nproc)
-    PATH="${_path_hack}" make install
+    make install
   }
 
   _build() {
@@ -419,7 +422,7 @@ _nowhere="$PWD"
       for _target in $_targets; do
         echo -e "Building ${_target} cross binutils"
         mkdir -p "${_nowhere}"/build/binutils-"${_target}" && cd "${_nowhere}"/build/binutils-"${_target}"
-        PATH="${_path_hack}" "${_nowhere}"/build/"${_binutils_path}"/configure \
+        PATH="$( find "$CUSTOM_GCC_PATH/usr/" -maxdepth 1 -printf "%p:" )$PATH" "${_nowhere}"/build/"${_binutils_path}"/configure \
           --target="${_target}" \
           --enable-lto \
           --enable-plugins \
@@ -429,7 +432,7 @@ _nowhere="$PWD"
           --disable-werror \
           --prefix="${_dstdir}/usr" \
           ${_commonconfig}
-        PATH="${_path_hack}" make -j$(nproc) || exit 1
+        make -j$(nproc) -O || exit 1
       done
       for _target in ${_targets}; do
         echo -e "Installing ${_target} cross binutils"
@@ -446,7 +449,7 @@ _nowhere="$PWD"
           --enable-secure-api \
           --host="${_target}" \
           --prefix="${_dstdir}/usr"/"${_target}"
-        PATH="${_path_hack}" make || exit 1
+        make || exit 1
       done
       for _target in ${_targets}; do
         echo -e "Installing ${_target} headers"
@@ -503,7 +506,7 @@ _nowhere="$PWD"
           ${_exceptions_args} \
           ${_commonconfig} \
           ${_libelf_flag}
-        PATH=${_path_hack} make -j$(nproc) all-gcc || exit 1
+        make -j$(nproc) all-gcc || exit 1
       done
       for _target in ${_targets}; do
         echo -e "Installing ${_target} GCC C compiler"
@@ -529,9 +532,9 @@ _nowhere="$PWD"
           --prefix="${_dstdir}/usr"/"${_target}"
         # binutils 2.38 - disable parallel build preventing mingw compilation
         if [[ "$_binutils" = 2.38* ]]; then
-          PATH="${_path_hack}" make -j1 || exit 1
+          make -j1 || exit 1
         else
-          PATH="${_path_hack}" make -j$(nproc) || exit 1
+          make -j$(nproc) || exit 1
         fi
       done
       for _target in ${_targets}; do
@@ -548,7 +551,7 @@ _nowhere="$PWD"
           --host="${_target}" \
           --prefix="${_dstdir}/usr"/"${_target}" \
           ${_commonconfig}
-        PATH="${_path_hack}" make -j$(nproc) || exit 1
+        make -j$(nproc) || exit 1
       done
       for _target in ${_targets}; do
         cd "${_nowhere}"/build/winpthreads-build-"${_target}"
@@ -712,7 +715,7 @@ _nowhere="$PWD"
         --with-gmp="${_dstdir}"/usr \
         --with-mpfr="${_dstdir}"/usr \
         --with-mpc="${_dstdir}"/usr \
-        --with-linker-hash-style=gnu \
+        --with-linker-hash-style=both \
         --with-system-zlib \
         --enable-__cxa_atexit \
         --enable-cet=auto \
@@ -737,7 +740,7 @@ _nowhere="$PWD"
         #--enable-libstdcxx-debug
       make -j$(nproc) || exit 1
       make install
-      ln -s gcc ${_dstdir}/usr/bin/cc
+      ln -s gcc "${_dstdir}"/usr/bin/cc
 
       #libgcc
       cd ${_nowhere}/build/gcc_build
