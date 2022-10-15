@@ -13,6 +13,8 @@ jobs:
       - name: Compilation
         run: |
           sudo dpkg --add-architecture i386 && sudo apt update
+          sudo apt install gcc-multilib
+          sudo apt install libc6-dev:i386
           sudo apt install aptitude
           sudo aptitude remove -y '?narrow(?installed,?version(deb.sury.org))'
           yes|./mostlyportable-gcc.sh all
