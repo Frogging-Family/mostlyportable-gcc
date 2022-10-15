@@ -1,0 +1,24 @@
+name: mostlyportable GCC Ubuntu CI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v2
+      - name: Compilation
+        run: |
+          sudo dpkg --add-architecture i386 && sudo apt update
+          sudo apt install aptitude
+          sudo aptitude remove -y '?narrow(?installed,?version(deb.sury.org))'
+          cd mostlyportable-gcc
+          yes|./mostlyportable-gcc.sh all
+      - name: Archive the artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: mostlyportable-builds
+          path: mostlyportable-gcc/mostly-built
