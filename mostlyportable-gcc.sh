@@ -790,7 +790,8 @@ _nowhere="$PWD"
     fi
 
     # Remove previous build based on the same version if present
-    _fullversion_pathstring="${_nowhere}/${_tgtname}-${_gcc_version}${_gcc_sub}"
+    mkdir -p "${_nowhere}"/mostly-built
+    _fullversion_pathstring="${_nowhere}/mostly-built/${_tgtname}-${_gcc_version}${_gcc_sub}"
     if [ -d "${_fullversion_pathstring}" ]; then
       rm -rf "${_fullversion_pathstring}"
     fi
