@@ -15,7 +15,6 @@ jobs:
           sudo dpkg --add-architecture i386 && sudo apt update
           sudo apt install aptitude
           sudo aptitude remove -y '?narrow(?installed,?version(deb.sury.org))'
-          cd mostlyportable-gcc
           yes|./mostlyportable-gcc.sh all
       - name: Archive the artifacts
         uses: actions/upload-artifact@v2
