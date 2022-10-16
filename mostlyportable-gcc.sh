@@ -529,7 +529,8 @@ _nowhere="$PWD"
           --host="${_target}" \
           --enable-wildcard \
           ${_crt_configure_args} \
-          --prefix="${_dstdir}/usr"/"${_target}"
+          --with-sysroot="${_dstdir}"/usr/"${_target}" \
+          --prefix="${_dstdir}"/usr/"${_target}"
         # binutils 2.38 - disable parallel build preventing mingw compilation
         if [[ "$_binutils" = 2.38* ]]; then
           make -j1 || exit 1
