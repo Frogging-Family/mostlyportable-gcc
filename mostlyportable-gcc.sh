@@ -345,7 +345,7 @@ _nowhere="$PWD"
   }
 
   _makeandinstall() {
-    PATH="${_path_hack}" schedtool -B -n 1 -e ionice -n 1 make -j$(nproc) || PATH="${_path_hack}" make -j$(nproc)
+    PATH="${_path_hack}" make -j$(nproc)
     make install
   }
 
