@@ -405,13 +405,13 @@ _nowhere="$PWD"
       _makeandinstall || exit 1
 
       # cloog
-      cd "${_nowhere}"/build/cloog-"${_cloog}"
-      PATH="${_path_hack}" ./configure \
-        --with-isl="${_dstdir}"/usr \
-        --with-osl="${_dstdir}"/usr \
-        --prefix="${_dstdir}/usr" \
-        ${_commonconfig}
-      _makeandinstall || exit 1
+      #cd "${_nowhere}"/build/cloog-"${_cloog}"
+      #PATH="${_path_hack}" ./configure \
+      #  --with-isl="${_dstdir}"/usr \
+      #  --with-osl="${_dstdir}"/usr \
+      #  --prefix="${_dstdir}/usr" \
+      #  ${_commonconfig}
+      #_makeandinstall || exit 1
 
       # mingw-w64-binutils
       cd "${_nowhere}"/build/"${_binutils_path}"
@@ -600,7 +600,6 @@ _nowhere="$PWD"
           --enable-libstdcxx-time=yes \
           --enable-libstdcxx-filesystem-ts=yes \
           --with-system-zlib \
-          --enable-cloog-backend=isl \
           --enable-lto \
           --enable-libgomp \
           --disable-multilib \
